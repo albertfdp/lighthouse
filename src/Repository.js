@@ -1,5 +1,5 @@
 import GitHubApi from './GitHubPromisify'
-import { getBranchName, upgradeDependency } from './utils'
+import { getChangelog, getBranchName, upgradeDependency } from './utils'
 
 export default class Repository {
   constructor (user, repo) {
@@ -22,36 +22,50 @@ export default class Repository {
     })
   }
 
-  updateDependency (dependency) {
+  openPullRequest ({ title, body, branch, file }) {
+    return Promise.resolve()
+      .then(() => this.api.getReference({ ref: 'heads/master' }))
+      .then((ref) => this.api.createReference({
+        ref: `refs/heads/${branch}`,
+        sha: ref.object.sha
+      }))
+      .then((ref) => this.api.updateFile({
+        path: 'package.json',
+        branch,
+        message: title,
+        sha: file.sha,
+        content: new Buffer(file.content, 'utf8').toString('base64')
+      }))
+      .then((ref) => this.api.createPullRequest({
+        title,
+        body,
+        base: 'master',
+        head: branch
+      }))
+  }
+
+  updateDependency (currentPackage, dependency) {
     const branch = getBranchName(dependency)
     const message = `Update ${dependency.name} to version ${dependency.version}`
-    return this.getPackageJson()
-      .then((data) => {
-        const updated = upgradeDependency(JSON.parse(data.content), dependency)
+    return Promise.resolve()
+      .then(() => {
+        const updated = upgradeDependency(JSON.parse(currentPackage.content), dependency)
         return Promise.resolve({
-          ...data,
+          ...currentPackage,
           content: JSON.stringify(updated, null, 2) + '\n'
         })
       })
-      .then((data) => {
-        return this.api.getReference({ ref: 'heads/master' })
-          .then((ref) => this.api.createReference({
-            ref: `refs/heads/${branch}`,
-            sha: ref.object.sha
-          }))
-          .then((ref) => this.api.updateFile({
-            path: 'package.json',
-            branch,
-            message,
-            sha: data.sha,
-            content: new Buffer(data.content, 'utf8').toString('base64')
-          }))
-          .then((ref) => this.api.createPullRequest({
-            title: message,
-            body: 'The body',
-            base: 'master',
-            head: branch
-          }))
+      .then((updatedPackage) => {
+        return Promise.resolve()
+          .then(() => getChangelog(dependency.name, dependency.version, dependency.next))
+          .then(changelog => {
+            return this.openPullRequest({
+              title: message,
+              body: changelog,
+              branch,
+              file: updatedPackage
+            })
+          })
       })
   }
 }

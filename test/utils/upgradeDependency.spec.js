@@ -2,9 +2,13 @@ import unexpected from 'unexpected'
 const expect = unexpected.clone()
 
 import { upgradeDependency } from '../../src/utils'
-import pkgData from './package.json'
 
 describe('upgradeDependency', () => {
+  let pkgData
+  beforeEach(() => {
+    pkgData = require('./package.json')
+  })
+
   describe('when a dependency is a production dependency', () => {
     it('is updated on package.json correctly', () => {
       const updated = upgradeDependency(pkgData, ({ name: 'react', version: '^15.0.0' }))

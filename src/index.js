@@ -1,6 +1,8 @@
 import yargs from 'yargs'
 import { version } from '../package'
 
+import { createDependencies } from './utils'
+
 import ncu from 'npm-check-updates'
 import Dependency from './Dependency'
 import Repository from './Repository'
@@ -19,25 +21,34 @@ const argv = yargs
   .argv
 
 const repo = new Repository(argv.user, argv.repo)
-repo.getPackageJson()
-  .then((data) => ncu.run({ packageData: data.content }))
-  .then((upgraded) => {
-    return Promise.resolve(Object.keys(upgraded).map(u => (
-      new Dependency({ name: u, version: upgraded[u] })
-    )))
-  })
-  .then((dependencies) => Promise.resolve([ dependencies[0] ]))
-  .then((dependencies) => {
-    let promises = []
+Promise.resolve()
+  .then(() => repo.getPackageJson())
+  .then((currentPackage) => {
+    let currentDependencies = createDependencies(JSON.parse(currentPackage.content))
 
-    dependencies.forEach(dependency => {
-      console.log(`Processing: ${dependency.name}@${dependency.version}`)
-      promises.push(repo.updateDependency(dependency))
-    })
+    return ncu.run({ packageData: currentPackage.content })
+      .then((upgraded) => {
+        let nextDependencies = []
 
-    return Promise.all(promises)
+        Object.keys(upgraded).forEach(u => {
+          let dependency = currentDependencies.get(u)
+          dependency.updateTo(upgraded[u])
+
+          nextDependencies.push(dependency)
+        })
+
+        return Promise.resolve(nextDependencies)
+      })
+      .then((dependencies) => {
+        let promises = []
+
+        dependencies.forEach(dependency => {
+          console.log(`Processing: ${dependency.name}@${dependency.next}`)
+          promises.push(repo.updateDependency(currentPackage, dependency))
+        })
+
+        return Promise.all(promises)
+      })
+      .catch(err => console.error(err))
   })
-  .then((updated) => {
-    console.log(updated)
-  })
-  .catch(e => console.error(e))
+  .catch(err => console.error(err))
