@@ -10,15 +10,15 @@ export default class Repository {
     return new Promise((resolve, reject) => {
       this.api.getContent({ path: 'package.json' })
         .then(data => {
-        try {
-          resolve({
-            ...data,
-            content: new Buffer(data.content, 'base64').toString('utf8')
-          })
-        } catch (err) {
-          reject(err)
-        }
-      })
+          try {
+            resolve({
+              ...data,
+              content: new Buffer(data.content, 'base64').toString('utf8')
+            })
+          } catch (err) {
+            reject(err)
+          }
+        })
     })
   }
 

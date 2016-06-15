@@ -6,7 +6,9 @@
   "scripts": {
     "build": "babel src -d dist",
     "start": "babel-node src/index.js",
-    "test": "mocha"
+    "test": "mocha --recursive --compilers js:babel-core/register",
+    "lint": "standard",
+    "travis": "npm run lint && npm run test"
   },
   "repository": {
     "type": "git",
@@ -33,10 +35,21 @@
     "babel-preset-stage-0": "^6.5.0",
     "bluebird": "^3.4.0",
     "github": "^1.1.2",
+    "mocha": "^2.5.3",
     "standard": "^7.1.2",
+    "unexpected": "^10.13.3",
     "yargs": "^4.7.1"
   },
   "dependencies": {
     "npm-check-updates": "^2.6.7"
+  },
+  "standard": {
+    "globals": [
+      "describe",
+      "it",
+      "beforeEach",
+      "afterEach"
+    ],
+    "parser": "babel-eslint"
   }
 }
