@@ -4,7 +4,6 @@ import { version } from '../package'
 import { createDependencies } from './utils'
 
 import ncu from 'npm-check-updates'
-import Dependency from './Dependency'
 import Repository from './Repository'
 
 const argv = yargs

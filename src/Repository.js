@@ -46,7 +46,7 @@ export default class Repository {
 
   updateDependency (currentPackage, dependency) {
     const branch = getBranchName(dependency)
-    const message = `Update ${dependency.name} to version ${dependency.version}`
+    const message = `Update ${dependency.name} to version ${dependency.next}`
     return Promise.resolve()
       .then(() => {
         const updated = upgradeDependency(JSON.parse(currentPackage.content), dependency)

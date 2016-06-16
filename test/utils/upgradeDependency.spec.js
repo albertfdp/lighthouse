@@ -11,7 +11,7 @@ describe('upgradeDependency', () => {
 
   describe('when a dependency is a production dependency', () => {
     it('is updated on package.json correctly', () => {
-      const updated = upgradeDependency(pkgData, ({ name: 'react', version: '^15.0.0' }))
+      const updated = upgradeDependency(pkgData, ({ name: 'react', next: '^15.0.0' }))
       expect(
         updated.dependencies['react'],
         'to equal',
@@ -22,7 +22,7 @@ describe('upgradeDependency', () => {
 
   describe('when a dependency is a devDependency', () => {
     it('is updated on package.json correctly', () => {
-      const updated = upgradeDependency(pkgData, ({ name: 'babel', version: '5.9.34' }))
+      const updated = upgradeDependency(pkgData, ({ name: 'babel', next: '5.9.34' }))
       expect(
         updated.devDependencies['babel'],
         'to equal',
@@ -33,7 +33,7 @@ describe('upgradeDependency', () => {
 
   describe('when a dependency is a peerDependency', () => {
     it('is updated on package.json correctly', () => {
-      const updated = upgradeDependency(pkgData, ({ name: 'someDependency', version: '^9.0' }))
+      const updated = upgradeDependency(pkgData, ({ name: 'someDependency', next: '^9.0' }))
       expect(
         updated.peerDependencies['someDependency'],
         'to equal',
