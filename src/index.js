@@ -12,14 +12,16 @@ const argv = yargs
   .version(() => version)
   .alias('h', 'help')
   .help('help')
+  .boolean('dry')
   .alias('r', 'repo')
   .alias('u', 'user')
   .demand([ 'r', 'u' ])
+  .describe('dry', 'DRY run')
   .describe('r', 'The repository name')
   .describe('u', 'The user or organization name')
   .argv
 
-const repo = new Repository(argv.user, argv.repo)
+const repo = new Repository(argv.user, argv.repo, argv.dry)
 Promise.resolve()
   .then(() => repo.getPackageJson())
   .then((currentPackage) => {
@@ -36,6 +38,7 @@ Promise.resolve()
           nextDependencies.push(dependency)
         })
 
+        console.log(`There are ${nextDependencies.length} that can be updated`)
         return Promise.resolve(nextDependencies)
       })
       .then((dependencies) => {

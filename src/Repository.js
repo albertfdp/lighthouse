@@ -2,8 +2,9 @@ import GitHubApi from './GitHubPromisify'
 import { getChangelog, getBranchName, upgradeDependency } from './utils'
 
 export default class Repository {
-  constructor (user, repo) {
+  constructor (user, repo, dry = false) {
     this.api = new GitHubApi(user, repo)
+    this.dry = dry
   }
 
   getPackageJson () {
@@ -23,25 +24,31 @@ export default class Repository {
   }
 
   openPullRequest ({ title, body, branch, file }) {
-    return Promise.resolve()
-      .then(() => this.api.getReference({ ref: 'heads/master' }))
-      .then((ref) => this.api.createReference({
-        ref: `refs/heads/${branch}`,
-        sha: ref.object.sha
-      }))
-      .then((ref) => this.api.updateFile({
-        path: 'package.json',
-        branch,
-        message: title,
-        sha: file.sha,
-        content: new Buffer(file.content, 'utf8').toString('base64')
-      }))
-      .then((ref) => this.api.createPullRequest({
-        title,
-        body,
-        base: 'master',
-        head: branch
-      }))
+    if (this.dry) {
+      console.log(`DRY: ${title}`)
+      console.log(body)
+      return Promise.resolve()
+    } else {
+      return Promise.resolve()
+        .then(() => this.api.getReference({ ref: 'heads/master' }))
+        .then((ref) => this.api.createReference({
+          ref: `refs/heads/${branch}`,
+          sha: ref.object.sha
+        }))
+        .then((ref) => this.api.updateFile({
+          path: 'package.json',
+          branch,
+          message: title,
+          sha: file.sha,
+          content: new Buffer(file.content, 'utf8').toString('base64')
+        }))
+        .then((ref) => this.api.createPullRequest({
+          title,
+          body,
+          base: 'master',
+          head: branch
+        }))
+    }
   }
 
   updateDependency (currentPackage, dependency) {

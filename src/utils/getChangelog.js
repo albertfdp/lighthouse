@@ -11,6 +11,13 @@ const getChangelog = (name, prev, next) => {
         })
       return changelog.markdown(changes)
     })
+    .catch(err => {
+      if (process.env.NODE_DEBUG) {
+        console.error(`Something went wrong with changelog => ${err}`)
+      }
+      const fallback = `Updated ${name} from ${prev} to ${next}`
+      return Promise.resolve(fallback)
+    })
 }
 
 export default getChangelog
